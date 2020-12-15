@@ -18,9 +18,10 @@
  *     running in, inspect e.authMode.
  */
 function onOpen(e) {
-  DocumentApp.getUi().createAddonMenu()
-      .addItem('Import...', 'showSidebar')
-      .addToUi();
+  DocumentApp.getUi()
+    .createAddonMenu()
+    .addItem("Import...", "showSidebar")
+    .addToUi();
 }
 
 /**
@@ -39,14 +40,13 @@ function onInstall(e) {
 }
 
 /**
- * defines a custom server-side include() function in this back-end script file 
+ * defines a custom server-side include() function in this back-end script file
  * to import the xxx-stylesheet.html and xxx-JavaScript.html file content into
  * the sidebar.html file. When called using printing scriptlets, this function
- * imports the specified file content into the current file. 
+ * imports the specified file content into the current file.
  */
 function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename)
-      .getContent();
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 /**
@@ -57,8 +57,9 @@ function include(filename) {
 function showSidebar() {
   //var ui = HtmlService.createHtmlOutputFromFile('sidebar')
   //    .setTitle('Contacts import');
-  var extendedUi = HtmlService.createTemplateFromFile('sidebar')
-      .evaluate().setTitle('Contacts import');
+  var extendedUi = HtmlService.createTemplateFromFile("sidebar")
+    .evaluate()
+    .setTitle("Contacts import");
 
   DocumentApp.getUi().showSidebar(extendedUi);
 }
@@ -68,15 +69,35 @@ function showSidebar() {
  * https://developers.google.com/people/api/rest/v1/people.connections/list
  */
 function getConnections() {
+  // there is a pagination mechanism
+  // and we want to retrieve every contacts right now !
+  const defaultPageSize = 100; // see api definition
   // should be extracted to simulate a cache
-  var contacts = People.People.Connections.list('people/me', {
-    personFields: 'names,emailAddresses,addresses',
-    sortOrder: 'LAST_NAME_ASCENDING'
+  let contacts = People.People.Connections.list("people/me", {
+    personFields: "names,emailAddresses,addresses",
+    pageSize: defaultPageSize,
   });
-  let totalItems = contacts.totalItems;
 
+  // store initial connections array
+  let contactInformationArray = contacts.connections;
+
+  // check pagination !
+  let totalItems = contacts.totalItems;
+  while (contactInformationArray.length < totalItems) {
+    // it means we have to retrieve more connections !
+    contacts = People.People.Connections.list("people/me", {
+      personFields: "names,emailAddresses,addresses",
+      pageSize: defaultPageSize,
+      pageToken: contacts.nextPageToken,
+    });
+    // add more elements in existing array
+    contactInformationArray = contactInformationArray.concat(
+      contacts.connections
+    );
+  }
+
+  // for a later synchronization ...
   let nextSyncToken = contacts.nextSyncToken;
-  var contactInformationArray = contacts.connections;
   return contactInformationArray;
 }
 
@@ -85,22 +106,20 @@ function getConnections() {
  */
 function searchAndReplace(familyName, givenName, displayName, email, address) {
   var body = DocumentApp.getActiveDocument().getBody();
-  
+
   if (familyName) {
-    body.replaceText('{contact.familyName}', familyName);
+    body.replaceText("{contact.familyName}", familyName);
   }
   if (givenName) {
-    body.replaceText('{contact.givenName}', givenName);
+    body.replaceText("{contact.givenName}", givenName);
   }
   if (displayName) {
-    body.replaceText('{contact.displayName}', displayName);
+    body.replaceText("{contact.displayName}", displayName);
   }
   if (email) {
-    body.replaceText('{contact.email}', email);
+    body.replaceText("{contact.email}", email);
   }
   if (address) {
-    body.replaceText('{contact.address}', address);
+    body.replaceText("{contact.address}", address);
   }
 }
-
-

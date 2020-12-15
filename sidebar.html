@@ -42,6 +42,7 @@
           <div class="input-group">
             <input class="width-100 form-control disabledinformation" type="text" id="contact-selection" placeholder="Select a contact by name" disabled>
           </div>
+          <label id="loaded-contacts-number">0</label><label for="loaded-contacts-number"> contacts loaded.</label>
         </div>
         <div class="block">
           <input type="checkbox" id="manual-edit" checked>
@@ -137,10 +138,15 @@
        * Runs a client-side function to display contact information.
        */
       function displayContactInformation(contactInformation) {
+        // clean existing values
+        cleanContactInformation();
+        
+        // fill new values
         let names = contactInformation.names;
         let familyName = '';
         let givenName = '';
         let displayName = '';
+        if (names) {
         if (names[0]) {
           // we have at least one name information
           // we should use primary name, information available in metadata
@@ -148,23 +154,28 @@
           givenName = names[0].givenName;
           displayName = names[0].displayName;
         }
+        }
 
         $("#family-name").val(familyName).trigger("change");
         $("#given-name").val(givenName).trigger("change");
-			  $("#display-name").val(displayName).trigger("change");
+	    $("#display-name").val(displayName).trigger("change");
 
         let emails = contactInformation.emailAddresses;
         let email = '';
+        if (emails) {
         if (emails[0]) {
           email = emails[0].value;
+        }
         }
 
         $("#email").val(email).trigger("change");
 
         let addresses = contactInformation.addresses;
         let address = '';
+        if (addresses) {
         if (addresses[0]) {
           address = addresses[0].formattedValue;
+        }
         }
 
         $("#address").val(address).trigger("change");
@@ -182,28 +193,35 @@
        */
       function populateContactsSearch(contactInformationList) {
         var options = {
-	        data: contactInformationList,
-	
-          getValue: function(element) {
-            let names = element.names;
-            let displayName;
-            if (names[0]) {
-              // we have at least one name information
-              // we should use primary name, information available in metadata
-              displayName = names[0].displayName;
-            } else {
-              displayName = 'Unknown contact';
-            }
+	      data: contactInformationList,
+	      getValue: function(contactInformation) {
+            if (contactInformation) {
+              let names = contactInformation.names;
+              let displayName = '';
+              if (names) {
+              if (names[0]) {
+                // we have at least one name information
+                // we should use primary name, information available in metadata
+                displayName = names[0].displayName;
+              }
+              } else {
+                displayName = 'No name';
+              }
 	          return displayName;
-          },
-          
-	        list: {
-
-		        onSelectItemEvent: function() {
-			        var contactInformation = $("#contact-selection").getSelectedItemData();
+            } else {
+              return 'unknown';
+            }
+          },      
+	      list: {
+            maxNumberOfElements: contactInformationList.length,
+            match: {
+			  enabled: true
+		    },
+		    onSelectItemEvent: function() {
+			  let contactInformation = $("#contact-selection").getSelectedItemData();
               displayContactInformation(contactInformation);
-		        }
-	        }
+		    }
+	      }
         };
         
         $("#contact-selection").easyAutocomplete(options);
@@ -222,6 +240,9 @@
         google.script.run.withSuccessHandler(
               function(contactInformationList, element) {
                 populateContactsSearch(contactInformationList);
+                // fill number of loaded contacts
+                $('#loaded-contacts-number').text(contactInformationList.length);
+                // enable user interactions
                 element.disabled = false;
                 list.empty();
                 // force switch to disable manual edition
