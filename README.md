@@ -1,7 +1,7 @@
-# google-contacts-import
+# Contacts Import
 From a google Doc, import information from your contacts.
 
-## prepare document
+## Prepare document
 In your document, use dedicated words that will be replaced by contact information:
 
 Template|Replaced by|Example|
@@ -12,7 +12,7 @@ Template|Replaced by|Example|
 {contact.email}|Email address in first position for this contact|john.doe@gmail.com
 {contact.address}|Address in first position for this contact|650 Saxton Dr. sNew York, NY 10032 
 
-## enable add-on
+## Enable add-on
 Open "add-ons" menu, and select "contacts -> imports" sub-menu to open dedicated side bar.
 
 In this side bar, you are able to fill manually contact information or load your contacts (using "Contacts" button). It may take a few seconds if there is a lot of contacts. 
