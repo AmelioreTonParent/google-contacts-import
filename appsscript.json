@@ -2,6 +2,10 @@
   "timeZone": "Europe/Paris",
   "dependencies": {
     "enabledAdvancedServices": [{
+      "userSymbol": "Docs",
+      "serviceId": "docs",
+      "version": "v1"
+    }, {
       "userSymbol": "People",
       "serviceId": "peopleapi",
       "version": "v1"
