@@ -188,7 +188,18 @@
     var manualEditFlag = $("#manual-edit").is(":checked");
 
     google.script.run
-      .withSuccessHandler(function (returnSuccess, element) {
+      .withSuccessHandler(function (newDocumentUrl, element) {
+        console.log(newDocumentUrl);
+        // add reference to new document
+        var list = $("#documentUri");
+        list.append(
+          '<a href="' +
+            newDocumentUrl +
+            '" target="_blank">Document of ' +
+            displayName +
+            "</a>"
+        );
+
         element.disabled = false;
       })
       .withFailureHandler(function (msg, element) {

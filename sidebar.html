@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <base target="_top">
-    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <base target="_top" />
+    <link
+      rel="stylesheet"
+      href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"
+    />
     <!-- The CSS package above applies Google styling to buttons and other elements. -->
     <?!= include('autocomplete-stylesheet'); ?>
     <!-- The html page above applies easy autocomplete stylesheet -->
@@ -18,44 +21,93 @@
         <div class="block" id="contacts-div">
           <ul id="things"></ul>
           <div class="input-group">
-            <input class="width-100 form-control disabledinformation" type="text" id="contact-selection" placeholder="Select a contact by name" disabled>
+            <input
+              class="width-100 form-control disabledinformation"
+              type="text"
+              id="contact-selection"
+              placeholder="Select a contact by name"
+              disabled
+            />
           </div>
-          <label id="loaded-contacts-number">0</label><label for="loaded-contacts-number"> contacts loaded.</label>
+          <label id="loaded-contacts-number">0</label
+          ><label for="loaded-contacts-number"> contacts loaded.</label>
         </div>
         <div class="block">
-          <input type="checkbox" id="manual-edit" checked>
+          <input type="checkbox" id="manual-edit" checked />
           <label for="manual-edit">Edit manually a contact</label>
         </div>
         <div class="block" id="contact-information">
           <div class="input-group">
             <label for="family-name"><b>Name:</b></label>
-            <input class="width-100" id="family-name" type="text" class="form-control" placeholder="{contact.familyName}" aria-label="Username">
+            <input
+              class="width-100"
+              id="family-name"
+              type="text"
+              class="form-control"
+              placeholder="{contact.familyName}"
+              aria-label="Username"
+            />
           </div>
           <div class="input-group">
             <label for="given-name"><b>Firstname:</b></label>
-            <input class="width-100" id="given-name" type="text" class="form-control" placeholder="{contact.givenName}" aria-label="Firstname">
+            <input
+              class="width-100"
+              id="given-name"
+              type="text"
+              class="form-control"
+              placeholder="{contact.givenName}"
+              aria-label="Firstname"
+            />
           </div>
           <div class="input-group">
             <label for="display-name"><b>Full name:</b></label>
-            <input class="width-100" id="display-name" type="text" class="form-control" placeholder="{contact.displayName}" aria-label="Displayname">
+            <input
+              class="width-100"
+              id="display-name"
+              type="text"
+              class="form-control"
+              placeholder="{contact.displayName}"
+              aria-label="Displayname"
+            />
           </div>
           <div class="input-group">
             <label for="email"><b>Email:</b></label>
-            <input class="width-100" id="email" type="email" class="form-control" placeholder="{contact.email}" aria-label="Email">
+            <input
+              class="width-100"
+              id="email"
+              type="email"
+              class="form-control"
+              placeholder="{contact.email}"
+              aria-label="Email"
+            />
           </div>
           <div class="block form-group">
             <label for="address"><b>Address:</b></label>
-            <textarea class="width-100" id="address" rows="4" placeholder="{contact.address}"></textarea>
+            <textarea
+              class="width-100"
+              id="address"
+              rows="4"
+              placeholder="{contact.address}"
+            ></textarea>
           </div>
         </div>
         <div class="block" id="replace-button-bar">
           <button class="blue" id="replace-contact">Replace</button>
         </div>
       </form>
+      <div>
+        <ul id="documentUri"></ul>
+      </div>
     </div>
 
     <div class="sidebar bottom">
-      <img alt="Add-on logo" class="logo" src="https://www.gstatic.com/images/branding/product/1x/translate_48dp.png" width="27" height="27">
+      <img
+        alt="Add-on logo"
+        class="logo"
+        src="https://www.gstatic.com/images/branding/product/1x/translate_48dp.png"
+        width="27"
+        height="27"
+      />
       <span class="gray branding-text">Contacts import by Gabriel</span>
     </div>
 

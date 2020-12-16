@@ -102,11 +102,56 @@ function getConnections() {
 }
 
 /**
- * Search for dedicated templates elements and replace them by provided values.
+ * Computes document name using provided information,
+ * also to be able to retrieve this document easily,
+ * add a date information.
  */
-function searchAndReplace(familyName, givenName, displayName, email, address) {
-  var body = DocumentApp.getActiveDocument().getBody();
+function computeDocumentName(familyName, givenName, displayName) {
+  let documentName;
+  if (displayName) {
+    documentName = displayName;
+  } else {
+    documentName = familyName + " " + givenName;
+  }
+  // add date information
+  let date = new Date();
+  documentName = documentName + " " + date.toISOString();
+  return documentName;
+}
 
+/**
+ * Creates a new document using current one as template.
+ *
+ * In new document, search for dedicated templates elements and replace them by provided values.
+ */
+function createDocumentFromTemplateWith(
+  familyName,
+  givenName,
+  displayName,
+  email,
+  address
+) {
+  let documentName = computeDocumentName(familyName, givenName, displayName);
+  let currentDocument = DocumentApp.getActiveDocument();
+
+  const options = {
+    fields: "id", // properties sent back to you from the API
+    //supportsTeamDrives: true, // needed for Team Drives
+  };
+  const metadata = {
+    title: documentName,
+    // other possible fields you can supply:
+    // https://developers.google.com/drive/api/v2/reference/files/copy#request-body
+  };
+
+  let newDocumentId = Drive.Files.copy(
+    metadata,
+    currentDocument.getId(),
+    options
+  );
+  let newDocument = DocumentApp.openById(newDocumentId.id);
+
+  let body = newDocument.getBody();
   if (familyName) {
     body.replaceText("{contact.familyName}", familyName);
   }
@@ -122,6 +167,11 @@ function searchAndReplace(familyName, givenName, displayName, email, address) {
   if (address) {
     body.replaceText("{contact.address}", address);
   }
+
+  let newDocumentUrl = newDocument.getUrl();
+  // save modifications to current document
+  newDocument.saveAndClose();
+  return newDocumentUrl;
 }
 
 /**
@@ -152,6 +202,7 @@ function createContact(familyName, givenName, email, address) {
       },
     ],
   });
+  // should we had the contact to current list ?
 }
 
 /**
@@ -167,6 +218,8 @@ function createContact(familyName, givenName, email, address) {
  * @param {string} email
  * @param {string} address
  * @param {boolean} manualEditFlag
+ *
+ * @returns url of created document.
  */
 function importContactInformation(
   familyName,
@@ -176,8 +229,15 @@ function importContactInformation(
   address,
   manualEditFlag
 ) {
-  searchAndReplace(familyName, givenName, displayName, email, address);
+  let newDocumentUrl = createDocumentFromTemplateWith(
+    familyName,
+    givenName,
+    displayName,
+    email,
+    address
+  );
   if (manualEditFlag) {
     createContact(familyName, givenName, email, address);
   }
+  return newDocumentUrl;
 }
