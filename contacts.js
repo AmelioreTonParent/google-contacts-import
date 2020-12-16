@@ -123,6 +123,9 @@ function computeDocumentName(familyName, givenName, displayName) {
  * Creates a new document using current one as template.
  *
  * In new document, search for dedicated templates elements and replace them by provided values.
+ *
+ * Use google workspace api for Drive:
+ * https://developers.google.com/apps-script/reference/drive/drive-app
  */
 function createDocumentFromTemplateWith(
   familyName,
@@ -134,22 +137,10 @@ function createDocumentFromTemplateWith(
   let documentName = computeDocumentName(familyName, givenName, displayName);
   let currentDocument = DocumentApp.getActiveDocument();
 
-  const options = {
-    fields: "id", // properties sent back to you from the API
-    //supportsTeamDrives: true, // needed for Team Drives
-  };
-  const metadata = {
-    title: documentName,
-    // other possible fields you can supply:
-    // https://developers.google.com/drive/api/v2/reference/files/copy#request-body
-  };
+  let currentFile = DriveApp.getFileById(currentDocument.getId());
+  let newFile = currentFile.makeCopy(documentName);
 
-  let newDocumentId = Drive.Files.copy(
-    metadata,
-    currentDocument.getId(),
-    options
-  );
-  let newDocument = DocumentApp.openById(newDocumentId.id);
+  let newDocument = DocumentApp.openById(newFile.getId());
 
   let body = newDocument.getBody();
   if (familyName) {
