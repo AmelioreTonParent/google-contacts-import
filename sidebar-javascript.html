@@ -185,6 +185,7 @@
     var displayName = $("#display-name").val();
     var email = $("#email").val();
     var address = $("#address").val();
+    var manualEditFlag = $("#manual-edit").is(":checked");
 
     google.script.run
       .withSuccessHandler(function (returnSuccess, element) {
@@ -195,7 +196,14 @@
         element.disabled = false;
       })
       .withUserObject(this)
-      .searchAndReplace(familyName, givenName, displayName, email, address);
+      .importContactInformation(
+        familyName,
+        givenName,
+        displayName,
+        email,
+        address,
+        manualEditFlag
+      );
   }
 
   /**

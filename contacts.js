@@ -123,3 +123,61 @@ function searchAndReplace(familyName, givenName, displayName, email, address) {
     body.replaceText("{contact.address}", address);
   }
 }
+
+/**
+ * Create a new contact in People management.
+ * Need the full scope to call this api.
+ *
+ * @param {string} familyName
+ * @param {string} givenName
+ * @param {string} email
+ * @param {string} address
+ */
+function createContact(familyName, givenName, email, address) {
+  let newContact = People.People.createContact({
+    names: [
+      {
+        familyName: familyName,
+        givenName: givenName,
+      },
+    ],
+    addresses: [
+      {
+        formattedValue: address,
+      },
+    ],
+    emailAddresses: [
+      {
+        value: email,
+      },
+    ],
+  });
+}
+
+/**
+ * Import contact information into google docs.
+ * Several steps are included:
+ * - replace templates by corresponding values,
+ * - create a contact if this is a manual edition,
+ * - and later, create a new document (in order to avoid modifications of this template).
+ *
+ * @param {string} familyName
+ * @param {string} givenName
+ * @param {string} displayName
+ * @param {string} email
+ * @param {string} address
+ * @param {boolean} manualEditFlag
+ */
+function importContactInformation(
+  familyName,
+  givenName,
+  displayName,
+  email,
+  address,
+  manualEditFlag
+) {
+  searchAndReplace(familyName, givenName, displayName, email, address);
+  if (manualEditFlag) {
+    createContact(familyName, givenName, email, address);
+  }
+}
