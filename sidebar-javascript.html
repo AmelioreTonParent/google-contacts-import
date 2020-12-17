@@ -24,12 +24,28 @@
   /**
    * Runs a clien-side function to enable or disable manual edition of contact information.
    */
+  function flagContactInformation(disableFlag) {
+    //$("#contact-information").children().prop("disabled", disableFlag);
+    $("#family-name").prop("disabled", disableFlag);
+    $("#given-name").prop("disabled", disableFlag);
+    $("#display-name").prop("disabled", disableFlag);
+    $("#email").prop("disabled", disableFlag);
+    $("#address").prop("disabled", disableFlag);
+    if (disableFlag) {
+      $("#contact-information").addClass("disabledinformation");
+    } else {
+      $("#contact-information").removeClass("disabledinformation");
+    }
+  }
+
+  /**
+   * Runs a clien-side function to enable or disable manual edition of contact information.
+   */
   function manageManualEdition() {
     var manualEditFlag = $("#manual-edit").is(":checked");
     if (manualEditFlag) {
       // enable everything
-      $("#contact-information").children().prop("disabled", false);
-      $("#contact-information").removeClass("disabledinformation");
+      flagContactInformation(false);
       // disable contacts selection
       $("#contact-selection").prop("disabled", true);
       $("#contact-selection").addClass("disabledinformation");
@@ -37,8 +53,7 @@
       // to be able to modify them
     } else {
       // disable everything
-      $("#contact-information").children().prop("disabled", true);
-      $("#contact-information").addClass("disabledinformation");
+      flagContactInformation(true);
       // enable contacts selection
       $("#contact-selection").prop("disabled", false);
       $("#contact-selection").removeClass("disabledinformation");
@@ -142,6 +157,9 @@
     $("#contact-selection").easyAutocomplete(options);
   }
 
+  var nextSyncTokenLocal;
+  var contactInformationList = [];
+
   /**
    * Runs a server-side function to display list of contacts for current user.
    */
@@ -151,10 +169,25 @@
     // display loading message
     var list = $("#things");
     list.append("<li>Loading...</li>");
-
+    console.log("local token value  = " + nextSyncTokenLocal);
     google.script.run
-      .withSuccessHandler(function (contactInformationList, element) {
-        populateContactsSearch(contactInformationList);
+      .withSuccessHandler(function (contactInformation, element) {
+        console.log(contactInformation);
+        console.log(contactInformation.nextSyncToken);
+        nextSyncTokenLocal = contactInformation.nextSyncToken;
+        if (contactInformation.synchronizationFlag) {
+          // it is only new elements to add (if any)
+          if (contactInformation.contactInformationArray) {
+            for (const contact of contactInformation.contactInformationArray) {
+              contactInformationList.push(contact);
+              console.log("add new contact");
+            }
+          }
+          // and we will see if input autocomplete reflect new elements
+        } else {
+          contactInformationList = contactInformation.contactInformationArray;
+          populateContactsSearch(contactInformationList);
+        }
         // fill number of loaded contacts
         $("#loaded-contacts-number").text(contactInformationList.length);
         // enable user interactions
@@ -170,7 +203,7 @@
         list.empty();
       })
       .withUserObject(this)
-      .getConnections();
+      .getConnections(nextSyncTokenLocal);
   }
 
   /**
@@ -180,12 +213,19 @@
     this.disabled = true;
     $("#error").remove();
 
-    var familyName = $("#family-name").val();
-    var givenName = $("#given-name").val();
-    var displayName = $("#display-name").val();
-    var email = $("#email").val();
-    var address = $("#address").val();
-    var manualEditFlag = $("#manual-edit").is(":checked");
+    let familyName = $("#family-name").val();
+    let givenName = $("#given-name").val();
+    let displayName = $("#display-name").val();
+    let email = $("#email").val();
+    let address = $("#address").val();
+    let manualEditFlag = $("#manual-edit").is(":checked");
+
+    let nameForUrl;
+    if (displayName) {
+      nameForUrl = displayName;
+    } else {
+      nameForUrl = givenName + " " + familyName;
+    }
 
     google.script.run
       .withSuccessHandler(function (newDocumentUrl, element) {
@@ -196,7 +236,7 @@
           '<li><a href="' +
             newDocumentUrl +
             '" target="_blank">Document of ' +
-            displayName +
+            nameForUrl +
             "</a></li>"
         );
 

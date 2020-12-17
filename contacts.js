@@ -68,7 +68,7 @@ function showSidebar() {
  * Gets a list of people in the user's contacts.
  * https://developers.google.com/people/api/rest/v1/people.connections/list
  */
-function getConnections() {
+function populateAllConnectionsWithoutSyncToken() {
   // there is a pagination mechanism
   // and we want to retrieve every contacts right now !
   const defaultPageSize = 100; // see api definition
@@ -76,10 +76,11 @@ function getConnections() {
   let contacts = People.People.Connections.list("people/me", {
     personFields: "names,emailAddresses,addresses",
     pageSize: defaultPageSize,
+    requestSyncToken: true,
   });
 
   // store initial connections array
-  let contactInformationArray = contacts.connections;
+  contactInformationArray = contacts.connections;
 
   // check pagination !
   let totalItems = contacts.totalItems;
@@ -89,6 +90,7 @@ function getConnections() {
       personFields: "names,emailAddresses,addresses",
       pageSize: defaultPageSize,
       pageToken: contacts.nextPageToken,
+      requestSyncToken: true,
     });
     // add more elements in existing array
     contactInformationArray = contactInformationArray.concat(
@@ -97,8 +99,113 @@ function getConnections() {
   }
 
   // for a later synchronization ...
-  let nextSyncToken = contacts.nextSyncToken;
-  return contactInformationArray;
+  // and finally update current array of contacts
+  return {
+    synchronizationFlag: false,
+    nextSyncToken: contacts.nextSyncToken,
+    contactInformationArray: contactInformationArray,
+  };
+}
+
+/**
+ * We have a synchronization token for contacts, but it could be expired:
+ *
+ * The request returns a 410 error if syncToken is specified and is expired.
+ * Sync tokens expire after 7 days to prevent data drift between clients and the server.
+ * To handle a sync token expired error, a request should be sent without syncToken to get all contacts.
+ */
+function synchronizeConnections(nextSyncToken) {
+  // store synchronization token and connections array (try to cache them)
+  let contactInformation;
+  try {
+    console.log("start synchronization.");
+    // there is a pagination mechanism
+    // and we want to retrieve every contacts right now !
+    const defaultPageSize = 100; // see api definition
+    // should be extracted to simulate a cache
+    let contacts = People.People.Connections.list("people/me", {
+      personFields: "names,emailAddresses,addresses",
+      pageSize: defaultPageSize,
+      requestSyncToken: true,
+      syncToken: nextSyncToken,
+    });
+    console.log("current token = " + nextSyncToken);
+    console.log("next token = " + contacts.nextSyncToken);
+    // store initial connections array
+    let contactInformationArray = contacts.connections;
+
+    // check pagination !
+    console.log("total number of items = " + contacts.totalItems);
+    if (contactInformationArray) {
+      let retrievedItems = contactInformationArray.length;
+      console.log("retrieved contacts = " + retrievedItems);
+      for (contact of contactInformationArray) {
+        console.log("retrieved contact = " + contact.toString());
+      }
+      while (retrievedItems == defaultPageSize) {
+        // it means we have to retrieve more connections !
+        contacts = People.People.Connections.list("people/me", {
+          personFields: "names,emailAddresses,addresses",
+          pageSize: defaultPageSize,
+          pageToken: contacts.nextPageToken,
+          requestSyncToken: true,
+          syncToken: nextSyncToken,
+        });
+        if (contacts.connections) {
+          retrievedItems = contacts.connections.length;
+          // add more elements in existing array
+          contactInformationArray = contactInformationArray.concat(
+            contacts.connections
+          );
+        } else {
+          retrievedItems = 0;
+        }
+        console.log("iterate !!!!");
+        console.log("current token = " + nextSyncToken);
+        console.log("next token = " + contacts.nextSyncToken);
+        console.log("total number of items = " + contacts.totalItems);
+        console.log("retrieved contacts = " + retrievedItems);
+      }
+    } else {
+      // empty array, because contacts.connections is undefined.
+      contactInformationArray = [];
+    }
+
+    // for a later synchronization ...
+    // and finally update current array of contacts
+    contactInformation = {
+      synchronizationFlag: true,
+      nextSyncToken: contacts.nextSyncToken,
+      contactInformationArray: contactInformationArray,
+    };
+  } catch (error) {
+    console.log("Synchronization failure: " + error);
+    // perform a full retrieval of contacts
+    contactInformation = populateAllConnectionsWithoutSyncToken();
+  }
+  return contactInformation;
+}
+
+/**
+ * Gets a list of people in the user's contacts.
+ * https://developers.google.com/people/api/rest/v1/people.connections/list
+ *
+ * We will start by using cached data if any.
+ *
+ * And, if there is no cached data, we will populate our cache with a full retrieval.
+ * @param {string} nextSyncToken a value to limit data exhanged with contacts server
+ */
+function getConnections(nextSyncToken) {
+  // store synchronization token and connections array (try to cache them)
+  let contactInformation;
+  console.log("Retrieve contact informations ...");
+  if (nextSyncToken) {
+    console.log("try synchronization ...");
+    contactInformation = synchronizeConnections(nextSyncToken);
+  } else {
+    contactInformation = populateAllConnectionsWithoutSyncToken();
+  }
+  return contactInformation;
 }
 
 /**
