@@ -14,28 +14,28 @@
   </head>
   <body>
     <div class="sidebar branding-below">
-      <form>
-        <div class="block" id="button-bar">
-          <button class="blue" id="list-contacts">Load Contacts</button>
+      <div class="block" id="button-bar">
+        <button class="blue" id="list-contacts">Load Contacts</button>
+      </div>
+      <div class="block" id="contacts-div">
+        <ul id="things"></ul>
+        <div class="input-group">
+          <input
+            class="width-100 form-control disabledinformation"
+            type="text"
+            id="contact-selection"
+            placeholder="Select a contact by name"
+            disabled
+          />
         </div>
-        <div class="block" id="contacts-div">
-          <ul id="things"></ul>
-          <div class="input-group">
-            <input
-              class="width-100 form-control disabledinformation"
-              type="text"
-              id="contact-selection"
-              placeholder="Select a contact by name"
-              disabled
-            />
-          </div>
-          <label id="loaded-contacts-number">0</label
-          ><label for="loaded-contacts-number"> contacts loaded.</label>
-        </div>
-        <div class="block">
-          <input type="checkbox" id="manual-edit" checked />
-          <label for="manual-edit">Edit manually a contact</label>
-        </div>
+        <label id="loaded-contacts-number">0</label
+        ><label for="loaded-contacts-number"> contacts loaded.</label>
+      </div>
+      <div class="block">
+        <input type="checkbox" id="manual-edit" checked />
+        <label for="manual-edit">Edit manually a contact</label>
+      </div>
+      <form id="contact-form">
         <div class="block" id="contact-information">
           <div class="input-group">
             <label for="family-name"><b>Name:</b></label>
@@ -71,6 +71,19 @@
             />
           </div>
           <div class="input-group">
+            <label for="phone-number"><b>Phone number:</b></label>
+            <input
+              class="width-100"
+              id="phone-number"
+              type="tel"
+              class="form-control"
+              placeholder="{contact.phoneNumber}"
+              aria-label="phoneNumber"
+              minlength="10"
+              maxlength="14"
+            />
+          </div>
+          <div class="input-group">
             <label for="email"><b>Email:</b></label>
             <input
               class="width-100"
@@ -92,7 +105,8 @@
           </div>
         </div>
         <div class="block" id="replace-button-bar">
-          <button class="blue" id="replace-contact">Replace</button>
+          <!-- <input it="submit-contact" type="submit" value="Submit" /> -->
+          <button class="blue" id="replace-contact" disabled>Replace</button>
         </div>
       </form>
       <div>

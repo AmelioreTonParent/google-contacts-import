@@ -64,6 +64,9 @@ function showSidebar() {
   DocumentApp.getUi().showSidebar(extendedUi);
 }
 
+// define fields to retrieve for a contact when performing people request.
+const personFieldsValue = "names,emailAddresses,addresses,phoneNumbers";
+
 /**
  * Gets a list of people in the user's contacts.
  * https://developers.google.com/people/api/rest/v1/people.connections/list
@@ -74,7 +77,7 @@ function populateAllConnectionsWithoutSyncToken() {
   const defaultPageSize = 100; // see api definition
   // should be extracted to simulate a cache
   let contacts = People.People.Connections.list("people/me", {
-    personFields: "names,emailAddresses,addresses",
+    personFields: personFieldsValue,
     pageSize: defaultPageSize,
     requestSyncToken: true,
   });
@@ -87,7 +90,7 @@ function populateAllConnectionsWithoutSyncToken() {
   while (contactInformationArray.length < totalItems) {
     // it means we have to retrieve more connections !
     contacts = People.People.Connections.list("people/me", {
-      personFields: "names,emailAddresses,addresses",
+      personFields: personFieldsValue,
       pageSize: defaultPageSize,
       pageToken: contacts.nextPageToken,
       requestSyncToken: true,
@@ -124,7 +127,7 @@ function synchronizeConnections(nextSyncToken) {
     const defaultPageSize = 100; // see api definition
     // should be extracted to simulate a cache
     let contacts = People.People.Connections.list("people/me", {
-      personFields: "names,emailAddresses,addresses",
+      personFields: personFieldsValue,
       pageSize: defaultPageSize,
       requestSyncToken: true,
       syncToken: nextSyncToken,
@@ -145,7 +148,7 @@ function synchronizeConnections(nextSyncToken) {
       while (retrievedItems == defaultPageSize) {
         // it means we have to retrieve more connections !
         contacts = People.People.Connections.list("people/me", {
-          personFields: "names,emailAddresses,addresses",
+          personFields: personFieldsValue,
           pageSize: defaultPageSize,
           pageToken: contacts.nextPageToken,
           requestSyncToken: true,
@@ -239,7 +242,8 @@ function createDocumentFromTemplateWith(
   givenName,
   displayName,
   email,
-  address
+  address,
+  phoneNumber
 ) {
   let documentName = computeDocumentName(familyName, givenName, displayName);
   let currentDocument = DocumentApp.getActiveDocument();
@@ -265,6 +269,9 @@ function createDocumentFromTemplateWith(
   if (address) {
     body.replaceText("{contact.address}", address);
   }
+  if (phoneNumber) {
+    body.replaceText("{contact.phoneNumber}", phoneNumber);
+  }
 
   let newDocumentUrl = newDocument.getUrl();
   // save modifications to current document
@@ -280,8 +287,9 @@ function createDocumentFromTemplateWith(
  * @param {string} givenName
  * @param {string} email
  * @param {string} address
+ * @param {string} phoneNumber
  */
-function createContact(familyName, givenName, email, address) {
+function createContact(familyName, givenName, email, address, phoneNumber) {
   let newContact = People.People.createContact({
     names: [
       {
@@ -297,6 +305,11 @@ function createContact(familyName, givenName, email, address) {
     emailAddresses: [
       {
         value: email,
+      },
+    ],
+    phoneNumbers: [
+      {
+        value: phoneNumber,
       },
     ],
   });
@@ -315,6 +328,7 @@ function createContact(familyName, givenName, email, address) {
  * @param {string} displayName
  * @param {string} email
  * @param {string} address
+ * @param {string} phoneNumber
  * @param {boolean} manualEditFlag
  *
  * @returns url of created document.
@@ -325,6 +339,7 @@ function importContactInformation(
   displayName,
   email,
   address,
+  phoneNumber,
   manualEditFlag
 ) {
   let newDocumentUrl = createDocumentFromTemplateWith(
@@ -332,10 +347,11 @@ function importContactInformation(
     givenName,
     displayName,
     email,
-    address
+    address,
+    phoneNumber
   );
   if (manualEditFlag) {
-    createContact(familyName, givenName, email, address);
+    createContact(familyName, givenName, email, address, phoneNumber);
   }
   return newDocumentUrl;
 }

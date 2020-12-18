@@ -1,12 +1,22 @@
 <script>
   /**
-   * On document load, assign click handlers to each button and try to load the
-   * user's origin and destination language preferences if previously set.
+   * On document load, assign click handlers to each button
+   * and enable "replace" button when form is valid.
    */
   $(function () {
     $("#list-contacts").click(listContacts);
     $("#manual-edit").click(manageManualEdition);
     $("#replace-contact").click(replaceContact);
+
+    //const form = $("#contact-form");
+    //form.change(function () {
+    // // $('form#myForm > :input[required]:visible').val() != ""
+    //let validity =
+    //form[0].checkValidity() &&
+    //$("#display-name")[0].checkValidity() && // display name
+    //$("#phone-number")[0].checkValidity(); // phone number
+    //$("#replace-contact").prop("disabled", !validity);
+    //});
   });
 
   /**
@@ -17,6 +27,7 @@
     $("#family-name").val("");
     $("#given-name").val("");
     $("#display-name").val("");
+    $("#phone-number").val("");
     $("#email").val("");
     $("#address").val("");
   }
@@ -29,6 +40,7 @@
     $("#family-name").prop("disabled", disableFlag);
     $("#given-name").prop("disabled", disableFlag);
     $("#display-name").prop("disabled", disableFlag);
+    $("#phone-number").prop("disabled", disableFlag);
     $("#email").prop("disabled", disableFlag);
     $("#address").prop("disabled", disableFlag);
     if (disableFlag) {
@@ -88,6 +100,18 @@
     $("#given-name").val(givenName).trigger("change");
     $("#display-name").val(displayName).trigger("change");
 
+    // phone number
+    let phoneNumbers = contactInformation.phoneNumbers;
+    let phoneNumber = "";
+    if (phoneNumbers) {
+      if (phoneNumbers[0]) {
+        phoneNumber = phoneNumbers[0].value;
+      }
+    }
+
+    $("#phone-number").val(phoneNumber).trigger("change");
+
+    // email
     let emails = contactInformation.emailAddresses;
     let email = "";
     if (emails) {
@@ -98,6 +122,7 @@
 
     $("#email").val(email).trigger("change");
 
+    // addresses
     let addresses = contactInformation.addresses;
     let address = "";
     if (addresses) {
@@ -170,6 +195,10 @@
     var list = $("#things");
     list.append("<li>Loading...</li>");
     console.log("local token value  = " + nextSyncTokenLocal);
+    // force switch to disable manual edition
+    $("#manual-edit").prop("checked", false).trigger("change");
+    manageManualEdition();
+    // perform the request
     google.script.run
       .withSuccessHandler(function (contactInformation, element) {
         console.log(contactInformation);
@@ -193,14 +222,14 @@
         // enable user interactions
         element.disabled = false;
         list.empty();
-        // force switch to disable manual edition
-        $("#manual-edit").prop("checked", false).trigger("change");
-        manageManualEdition();
       })
       .withFailureHandler(function (msg, element) {
         showError(msg, $("#button-bar"));
         element.disabled = false;
         list.empty();
+        // force switch to enable manual edition
+        $("#manual-edit").prop("checked", true).trigger("change");
+        manageManualEdition();
       })
       .withUserObject(this)
       .getConnections(nextSyncTokenLocal);
@@ -216,6 +245,7 @@
     let familyName = $("#family-name").val();
     let givenName = $("#given-name").val();
     let displayName = $("#display-name").val();
+    let phoneNumber = $("#phone-number").val();
     let email = $("#email").val();
     let address = $("#address").val();
     let manualEditFlag = $("#manual-edit").is(":checked");
@@ -253,6 +283,7 @@
         displayName,
         email,
         address,
+        phoneNumber,
         manualEditFlag
       );
   }
