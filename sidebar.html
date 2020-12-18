@@ -46,6 +46,7 @@
               class="form-control"
               placeholder="{contact.familyName}"
               aria-label="Username"
+              required
             />
           </div>
           <div class="input-group">
@@ -57,17 +58,19 @@
               class="form-control"
               placeholder="{contact.givenName}"
               aria-label="Firstname"
+              required
             />
           </div>
           <div class="input-group">
             <label for="display-name"><b>Full name:</b></label>
             <input
-              class="width-100"
+              class="width-100 disabledinformation"
               id="display-name"
               type="text"
               class="form-control"
               placeholder="{contact.displayName}"
               aria-label="Displayname"
+              disabled
             />
           </div>
           <div class="input-group">
@@ -81,6 +84,7 @@
               aria-label="phoneNumber"
               minlength="10"
               maxlength="14"
+              required
             />
           </div>
           <div class="input-group">
@@ -105,8 +109,12 @@
           </div>
         </div>
         <div class="block" id="replace-button-bar">
-          <!-- <input it="submit-contact" type="submit" value="Submit" /> -->
-          <button class="blue" id="replace-contact">Replace</button>
+          <input
+            class="blue"
+            it="submit-contact"
+            type="submit"
+            value="Submit"
+          />
         </div>
       </form>
       <div>

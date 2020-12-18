@@ -20,7 +20,7 @@
 function onOpen(e) {
   DocumentApp.getUi()
     .createAddonMenu()
-    .addItem("Import...", "showSidebar")
+    .addItem("Open sidebar", "showSidebar")
     .addToUi();
 }
 

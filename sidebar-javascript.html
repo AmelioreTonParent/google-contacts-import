@@ -6,17 +6,33 @@
   $(function () {
     $("#list-contacts").click(listContacts);
     $("#manual-edit").click(manageManualEdition);
-    $("#replace-contact").click(replaceContact);
 
-    //const form = $("#contact-form");
-    //form.change(function () {
-    // // $('form#myForm > :input[required]:visible').val() != ""
-    //let validity =
-    //form[0].checkValidity() &&
-    //$("#display-name")[0].checkValidity() && // display name
-    //$("#phone-number")[0].checkValidity(); // phone number
-    //$("#replace-contact").prop("disabled", !validity);
-    //});
+    const form = $("#contact-form");
+    form.submit(function (event) {
+      event.preventDefault();
+      $("#error").remove();
+      // store current value of edition
+      var manualEditFlag = $("#manual-edit").is(":checked");
+      if (!manualEditFlag) {
+        // we are in automatic mode and check validity won't work ...
+        // force enable inputs
+        flagContactInformation(false);
+      }
+      let validity = form[0].checkValidity();
+      console.log("form validity: " + validity);
+      if (validity) {
+        replaceContact();
+      } else {
+        // force manual mode if we are in automatic mode
+        if (!manualEditFlag) {
+          // force switch to enable manual edition
+          $("#manual-edit").prop("checked", true).trigger("change");
+          manageManualEdition();
+        }
+        let message = "Please, fill out required fields.";
+        showError(message, $("#replace-button-bar"));
+      }
+    });
   });
 
   /**
@@ -36,10 +52,8 @@
    * Runs a clien-side function to enable or disable manual edition of contact information.
    */
   function flagContactInformation(disableFlag) {
-    //$("#contact-information").children().prop("disabled", disableFlag);
     $("#family-name").prop("disabled", disableFlag);
     $("#given-name").prop("disabled", disableFlag);
-    $("#display-name").prop("disabled", disableFlag);
     $("#phone-number").prop("disabled", disableFlag);
     $("#email").prop("disabled", disableFlag);
     $("#address").prop("disabled", disableFlag);
