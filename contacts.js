@@ -55,8 +55,6 @@ function include(filename) {
  * the mobile add-on version.
  */
 function showSidebar() {
-  //var ui = HtmlService.createHtmlOutputFromFile('sidebar')
-  //    .setTitle('Contacts import');
   var extendedUi = HtmlService.createTemplateFromFile("sidebar")
     .evaluate()
     .setTitle("Contacts import");
@@ -121,7 +119,6 @@ function synchronizeConnections(nextSyncToken) {
   // store synchronization token and connections array (try to cache them)
   let contactInformation;
   try {
-    console.log("start synchronization.");
     // there is a pagination mechanism
     // and we want to retrieve every contacts right now !
     const defaultPageSize = 100; // see api definition
@@ -132,18 +129,13 @@ function synchronizeConnections(nextSyncToken) {
       requestSyncToken: true,
       syncToken: nextSyncToken,
     });
-    console.log("current token = " + nextSyncToken);
-    console.log("next token = " + contacts.nextSyncToken);
     // store initial connections array
     let contactInformationArray = contacts.connections;
 
     // check pagination !
-    console.log("total number of items = " + contacts.totalItems);
     if (contactInformationArray) {
       let retrievedItems = contactInformationArray.length;
-      console.log("retrieved contacts = " + retrievedItems);
       for (contact of contactInformationArray) {
-        console.log("retrieved contact = " + contact.toString());
       }
       while (retrievedItems == defaultPageSize) {
         // it means we have to retrieve more connections !
@@ -163,11 +155,6 @@ function synchronizeConnections(nextSyncToken) {
         } else {
           retrievedItems = 0;
         }
-        console.log("iterate !!!!");
-        console.log("current token = " + nextSyncToken);
-        console.log("next token = " + contacts.nextSyncToken);
-        console.log("total number of items = " + contacts.totalItems);
-        console.log("retrieved contacts = " + retrievedItems);
       }
     } else {
       // empty array, because contacts.connections is undefined.
@@ -182,7 +169,6 @@ function synchronizeConnections(nextSyncToken) {
       contactInformationArray: contactInformationArray,
     };
   } catch (error) {
-    console.log("Synchronization failure: " + error);
     // perform a full retrieval of contacts
     contactInformation = populateAllConnectionsWithoutSyncToken();
   }
@@ -201,9 +187,7 @@ function synchronizeConnections(nextSyncToken) {
 function getConnections(nextSyncToken) {
   // store synchronization token and connections array (try to cache them)
   let contactInformation;
-  console.log("Retrieve contact informations ...");
   if (nextSyncToken) {
-    console.log("try synchronization ...");
     contactInformation = synchronizeConnections(nextSyncToken);
   } else {
     contactInformation = populateAllConnectionsWithoutSyncToken();
@@ -216,13 +200,8 @@ function getConnections(nextSyncToken) {
  * also to be able to retrieve this document easily,
  * add a date information.
  */
-function computeDocumentName(familyName, givenName, displayName) {
-  let documentName;
-  if (displayName) {
-    documentName = displayName;
-  } else {
-    documentName = familyName + " " + givenName;
-  }
+function computeDocumentName(familyName, givenName) {
+  let documentName = givenName + " " + familyName;
   // add date information
   let date = new Date();
   documentName = documentName + " " + date.toISOString();
@@ -240,12 +219,11 @@ function computeDocumentName(familyName, givenName, displayName) {
 function createDocumentFromTemplateWith(
   familyName,
   givenName,
-  displayName,
   email,
   address,
   phoneNumber
 ) {
-  let documentName = computeDocumentName(familyName, givenName, displayName);
+  let documentName = computeDocumentName(familyName, givenName);
   let currentDocument = DocumentApp.getActiveDocument();
 
   let currentFile = DriveApp.getFileById(currentDocument.getId());
@@ -259,9 +237,6 @@ function createDocumentFromTemplateWith(
   }
   if (givenName) {
     body.replaceText("{contact.givenName}", givenName);
-  }
-  if (displayName) {
-    body.replaceText("{contact.displayName}", displayName);
   }
   if (email) {
     body.replaceText("{contact.email}", email);
@@ -325,7 +300,6 @@ function createContact(familyName, givenName, email, address, phoneNumber) {
  *
  * @param {string} familyName
  * @param {string} givenName
- * @param {string} displayName
  * @param {string} email
  * @param {string} address
  * @param {string} phoneNumber
@@ -336,7 +310,6 @@ function createContact(familyName, givenName, email, address, phoneNumber) {
 function importContactInformation(
   familyName,
   givenName,
-  displayName,
   email,
   address,
   phoneNumber,
@@ -345,7 +318,6 @@ function importContactInformation(
   let newDocumentUrl = createDocumentFromTemplateWith(
     familyName,
     givenName,
-    displayName,
     email,
     address,
     phoneNumber

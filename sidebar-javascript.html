@@ -14,13 +14,20 @@
       // store current value of edition
       var manualEditFlag = $("#manual-edit").is(":checked");
       if (!manualEditFlag) {
-        // we are in automatic mode and check validity won't work ...
-        // force enable inputs
-        flagContactInformation(false);
+        // we are in automatic mode and check validity won't work
+        // if we keep current disabled status for inputs ...
+        // so force enable of inputs
+        const disabledFlag = false;
+        flagContactInformation(disabledFlag);
       }
       let validity = form[0].checkValidity();
       console.log("form validity: " + validity);
       if (validity) {
+        if (!manualEditFlag) {
+          // we are in automatic mode so revert to current state
+          const disabledFlag = true;
+          flagContactInformation(disabledFlag);
+        }
         replaceContact();
       } else {
         // force manual mode if we are in automatic mode
@@ -258,18 +265,12 @@
 
     let familyName = $("#family-name").val();
     let givenName = $("#given-name").val();
-    let displayName = $("#display-name").val();
     let phoneNumber = $("#phone-number").val();
     let email = $("#email").val();
     let address = $("#address").val();
     let manualEditFlag = $("#manual-edit").is(":checked");
 
-    let nameForUrl;
-    if (displayName) {
-      nameForUrl = displayName;
-    } else {
-      nameForUrl = givenName + " " + familyName;
-    }
+    let nameForUrl = givenName + " " + familyName;
 
     google.script.run
       .withSuccessHandler(function (newDocumentUrl, element) {
@@ -294,7 +295,6 @@
       .importContactInformation(
         familyName,
         givenName,
-        displayName,
         email,
         address,
         phoneNumber,
